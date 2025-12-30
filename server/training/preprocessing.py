@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import LabelEncoder
 
 os.system('cls')
-data = pd.read_csv("dataset/loan_approval_dataset.csv")
+data = pd.read_csv("../dataset/loan_approval_dataset.csv")
 
 print('This is the information about the dataset: ')
 print(data.info())
@@ -44,4 +44,4 @@ data['dti_ratio'] = data['loan_amount'] / data['income_annum']
 data['total_assets'] = data['residential_assets_value'] + data['commercial_assets_value'] + data['luxury_assets_value'] + data['bank_asset_value']
 data['asset_coverage'] = data['total_assets'] / data['loan_amount']
 data['affordability_index'] = data['income_annum'] / (data['loan_amount']/data['loan_term'])
-data.to_csv("dataset/prepro.csv", index=False)
+data.to_csv("../dataset/prepro.csv", index=False)
