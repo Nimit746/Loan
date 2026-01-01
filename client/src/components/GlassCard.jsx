@@ -10,6 +10,7 @@ const GlassCard = ({
     useRotatingBorder = false,
     onClick,
     delay = 0,
+    animate = true,
     ...props
 }) => {
     const [isHovered, setIsHovered] = useState(false);
@@ -53,12 +54,12 @@ const GlassCard = ({
                 ${glow ? `glow-${glowColor}` : ''}
                 ${className}
             `}
-            initial={{ opacity: 0, y: 50, filter: 'blur(10px)' }}
-            whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-            viewport={{ once: true, margin: "-80px" }}
+            initial={animate ? { opacity: 0, y: 20 } : {}}
+            whileInView={animate ? { opacity: 1, y: 0 } : {}}
+            viewport={{ once: true, margin: "-20px" }}
             transition={{
-                duration: 0.9,
-                delay: delay * 0.15,
+                duration: 0.5,
+                delay: delay * 0.1,
                 ease: [0.25, 1, 0.5, 1]
             }}
             whileHover={hoverAnimation}
@@ -120,27 +121,31 @@ const GlassCard = ({
             )}
 
             {/* Idle float overlay - applies continuous floating */}
-            <motion.div
-                className="absolute inset-0 pointer-events-none"
-                animate={!isHovered ? idleFloat : {}}
-            />
+            {animate && hover && (
+                <motion.div
+                    className="absolute inset-0 pointer-events-none"
+                    animate={!isHovered ? idleFloat : {}}
+                />
+            )}
 
             {/* Shine effect on hover */}
-            <motion.div
-                className="absolute inset-0 rounded-[inherit] pointer-events-none overflow-hidden"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: isHovered ? 1 : 0 }}
-            >
+            {hover && (
                 <motion.div
-                    className="absolute inset-0"
-                    style={{
-                        background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.05) 50%, transparent 60%)'
-                    }}
-                    initial={{ x: '-100%' }}
-                    animate={isHovered ? { x: '100%' } : { x: '-100%' }}
-                    transition={{ duration: 0.8, ease: 'easeInOut' }}
-                />
-            </motion.div>
+                    className="absolute inset-0 rounded-[inherit] pointer-events-none overflow-hidden"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: isHovered ? 1 : 0 }}
+                >
+                    <motion.div
+                        className="absolute inset-0"
+                        style={{
+                            background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.05) 50%, transparent 60%)'
+                        }}
+                        initial={{ x: '-100%' }}
+                        animate={isHovered ? { x: '100%' } : { x: '-100%' }}
+                        transition={{ duration: 0.8, ease: 'easeInOut' }}
+                    />
+                </motion.div>
+            )}
         </motion.div>
     );
 };

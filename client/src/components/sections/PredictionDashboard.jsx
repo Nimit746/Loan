@@ -8,23 +8,24 @@ import { FiSearch, FiAlertCircle, FiCheckCircle, FiShield, FiActivity, FiCpu, Fi
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-const PredictionDashboard = () => {
-    const [formData, setFormData] = useState({
-        income: '9600000',
-        loan_amount: '29900000',
-        loan_term: '12',
-        cibil_score: '778',
-        residential_assets: '2400000',
-        commercial_assets: '17600000',
-        luxury_assets: '22700000',
-        bank_assets: '3800000'
-    });
+const DEFAULT_DATA = {
+    income: '9600000',
+    loan_amount: '29900000',
+    loan_term: '12',
+    cibil_score: '778',
+    residential_assets: '2400000',
+    commercial_assets: '17600000',
+    luxury_assets: '22700000',
+    bank_assets: '3800000'
+};
 
+const PredictionDashboard = () => {
+    const [formData, setFormData] = useState(DEFAULT_DATA);
     const [result, setResult] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [selectedFile, setSelectedFile] = useState(null);
-    const [uploading, setUploading] = useState(false);
+    const [history, setHistory] = useState([]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -37,11 +38,33 @@ const PredictionDashboard = () => {
         }
     };
 
+    const handleReset = () => {
+        setFormData(DEFAULT_DATA);
+        setResult(null);
+        setError(null);
+        setSelectedFile(null);
+    };
+
+    const handleClear = () => {
+        setFormData({
+            income: '',
+            loan_amount: '',
+            loan_term: '',
+            cibil_score: '',
+            residential_assets: '',
+            commercial_assets: '',
+            luxury_assets: '',
+            bank_assets: ''
+        });
+        setResult(null);
+        setError(null);
+        setSelectedFile(null);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
-        setResult(null);
 
         try {
             const formDataToSend = new FormData();
@@ -58,9 +81,7 @@ const PredictionDashboard = () => {
                 formDataToSend.append('document', selectedFile);
             }
 
-            console.log('Sending prediction request...', Array.from(formDataToSend.keys()));
             const response = await axios.post(`${API_URL}/predict`, formDataToSend);
-            console.log('Prediction response received:', response.data);
 
             const loanAmt = parseFloat(formData.loan_amount) || 1;
             const incomeAmt = parseFloat(formData.income) || 1;
@@ -69,8 +90,11 @@ const PredictionDashboard = () => {
                 (parseFloat(formData.luxury_assets) || 0) +
                 (parseFloat(formData.bank_assets) || 0);
 
-            setResult({
+            const finalResult = {
                 ...response.data,
+                id: Date.now(),
+                timestamp: new Date().toLocaleTimeString(),
+                input: { ...formData },
                 dtiRatio: (loanAmt / incomeAmt).toFixed(2),
                 assetCoverage: (totalAssets / loanAmt).toFixed(2),
                 totalAssets,
@@ -80,11 +104,14 @@ const PredictionDashboard = () => {
                     { label: 'Luxury', value: parseFloat(formData.luxury_assets) || 0, color: 'purple' },
                     { label: 'Bank', value: parseFloat(formData.bank_assets) || 0, color: 'green' }
                 ]
-            });
+            };
+
+            setResult(finalResult);
+            setHistory(prev => [finalResult, ...prev].slice(0, 5));
         } catch (err) {
             console.error('Prediction error:', err);
             const detail = err.response?.data?.detail;
-            setError(typeof detail === 'string' ? detail : (Array.isArray(detail) ? JSON.stringify(detail) : 'Connection failed. Ensure backend is running.'));
+            setError(typeof detail === 'string' ? detail : 'Connection failed. Ensure backend is running.');
         } finally {
             setLoading(false);
         }
@@ -94,22 +121,25 @@ const PredictionDashboard = () => {
         <div className="w-full max-w-5xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-8">
                 {/* Form Input Side */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
-                >
-                    <GlassCard useRotatingBorder={false} className="p-0 overflow-hidden h-full">
-                        {/* Header */}
-                        <div className="bg-gradient-to-r from-blue-600/10 to-transparent px-5 py-4 border-b border-white/5">
-                            <h3 className="text-base font-bold text-white flex items-center gap-2">
-                                <FiSearch className="text-blue-400 w-4 h-4" />
-                                Application Data
-                            </h3>
-                            <p className="text-slate-500 text-xs mt-0.5">Verify all parameters before analysis.</p>
+                <div className="h-full">
+                    <GlassCard useRotatingBorder={false} hover={false} animate={false} className="p-0 overflow-hidden h-full">
+                        <div className="bg-gradient-to-r from-blue-600/10 to-transparent px-5 py-4 border-b border-white/5 flex justify-between items-center">
+                            <div>
+                                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                                    <FiSearch className="text-blue-400 w-4 h-4" />
+                                    Application Data
+                                </h3>
+                                <p className="text-slate-500 text-xs mt-0.5">Enter custom parameters for analysis.</p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={handleClear}
+                                className="text-[10px] font-bold text-blue-400 hover:text-blue-300 uppercase tracking-widest bg-blue-500/10 px-3 py-1.5 rounded-md border border-blue-500/20 transition-all"
+                            >
+                                + Add New
+                            </button>
                         </div>
 
-                        {/* Form */}
                         <form onSubmit={handleSubmit} className="p-5">
                             <div className="grid grid-cols-2 gap-3 mb-5">
                                 <InputField label="Annual Income (₹)" name="income" value={formData.income} onChange={handleChange} />
@@ -122,7 +152,6 @@ const PredictionDashboard = () => {
                                 <InputField label="Bank Assets (₹)" name="bank_assets" value={formData.bank_assets} onChange={handleChange} />
                             </div>
 
-                            {/* Multi-modal File Upload */}
                             <div className="mb-5">
                                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-2">
                                     Multi-modal Verification (PDF/JPEG)
@@ -145,75 +174,55 @@ const PredictionDashboard = () => {
                                 </div>
                             </div>
 
-                            <AnimatedButton
-                                type="submit"
-                                variant="primary"
-                                className="w-full py-3 text-sm font-bold"
-                                loading={loading}
-                                disabled={loading}
-                            >
-                                {loading ? 'Processing Multi-modal Input...' : 'Run Neural Prediction'}
-                            </AnimatedButton>
+                            <div className="flex gap-3">
+                                <AnimatedButton
+                                    type="submit"
+                                    variant="primary"
+                                    className="flex-1 py-3 text-sm font-bold"
+                                    loading={loading}
+                                    disabled={loading}
+                                >
+                                    {loading ? 'Processing...' : 'Run Prediction'}
+                                </AnimatedButton>
+                                <AnimatedButton
+                                    type="button"
+                                    variant="secondary"
+                                    onClick={handleReset}
+                                    className="px-6 py-3 text-sm font-bold"
+                                    disabled={loading}
+                                >
+                                    Reset
+                                </AnimatedButton>
+                            </div>
                         </form>
                     </GlassCard>
-                </motion.div>
+                </div>
 
                 {/* Results Side */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.1 }}
-                >
+                <div className="h-full">
                     <AnimatePresence mode="wait">
                         {!result && !loading && !error && (
-                            <motion.div
-                                key="empty"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="h-full min-h-[380px] glass-morphism glass-card flex flex-col items-center justify-center p-8 border border-dashed border-white/10"
-                            >
+                            <div key="empty" className="h-full min-h-[380px] glass-morphism glass-card flex flex-col items-center justify-center p-8 border border-dashed border-white/10">
                                 <div className="w-14 h-14 rounded-full bg-slate-800/50 flex items-center justify-center mb-4">
                                     <FiActivity className="w-6 h-6 text-slate-500" />
                                 </div>
                                 <h3 className="text-base font-bold text-white mb-1">Engine Awaiting Input</h3>
                                 <p className="text-slate-500 text-sm text-center">Submit data to see probability analysis</p>
-                            </motion.div>
+                            </div>
                         )}
 
                         {loading && (
-                            <motion.div
-                                key="loading"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="h-full min-h-[380px] glass-morphism glass-card flex flex-col items-center justify-center p-8 border border-blue-500/20"
-                            >
+                            <div key="loading" className="h-full min-h-[380px] glass-morphism glass-card flex flex-col items-center justify-center p-8 border border-blue-500/20">
                                 <div className="relative mb-5">
                                     <div className="w-14 h-14 rounded-full border-4 border-blue-500/10 border-t-blue-500 animate-spin" />
-                                    <FiCpu className="absolute inset-0 m-auto w-5 h-5 text-blue-400 animate-pulse" />
+                                    <FiCpu className="absolute inset-0 m-auto w-5 h-5 text-blue-400" />
                                 </div>
                                 <h3 className="text-base font-bold text-white mb-2">Analyzing Risk Matrix</h3>
-                                <div className="flex gap-1">
-                                    {[0, 1, 2].map(i => (
-                                        <motion.div
-                                            key={i}
-                                            animate={{ opacity: [0.3, 1, 0.3] }}
-                                            transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.3 }}
-                                            className="w-1.5 h-1.5 rounded-full bg-blue-500"
-                                        />
-                                    ))}
-                                </div>
-                            </motion.div>
+                            </div>
                         )}
 
                         {error && (
-                            <motion.div
-                                key="error"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                className="h-full min-h-[380px] glass-morphism glass-card flex flex-col items-center justify-center p-8 border border-red-500/20"
-                            >
+                            <div key="error" className="h-full min-h-[380px] glass-morphism glass-card flex flex-col items-center justify-center p-8 border border-red-500/20">
                                 <FiAlertCircle className="w-10 h-10 text-red-500 mb-4" />
                                 <h3 className="text-base font-bold text-red-400 mb-2">Neural Engine Error</h3>
                                 <p className="text-slate-400 text-center max-w-xs text-sm mb-4">{error}</p>
@@ -224,18 +233,12 @@ const PredictionDashboard = () => {
                                 >
                                     Try Again
                                 </AnimatedButton>
-                            </motion.div>
+                            </div>
                         )}
 
                         {result && (
-                            <motion.div
-                                key="result"
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="flex flex-col gap-4"
-                            >
-                                {/* Main Result */}
-                                <GlassCard glow={true} glowColor={result.approved ? 'blue' : 'red'} className="flex flex-col items-center p-5">
+                            <div key="result" className="flex flex-col gap-4">
+                                <GlassCard animate={false} hover={false} glow={true} glowColor={result.approved ? 'blue' : 'red'} className="flex flex-col items-center p-5">
                                     <CircularGauge
                                         value={result.confidence}
                                         label={result.approved ? 'Approved' : 'Rejected'}
@@ -254,15 +257,9 @@ const PredictionDashboard = () => {
                                                 Loan {result.approved ? 'Approved' : 'Rejected'}
                                             </span>
                                         </div>
-                                        {result.verification_status && (
-                                            <span className="text-[10px] text-slate-500 bg-white/5 px-2 py-0.5 rounded-full border border-white/10 uppercase tracking-tighter">
-                                                {result.verification_status}
-                                            </span>
-                                        )}
                                     </div>
                                 </GlassCard>
 
-                                {/* Metrics */}
                                 <div className="grid grid-cols-4 gap-2">
                                     <MetricCard label="CIBIL" value={parseInt(formData.cibil_score) > 700 ? 'Good' : 'Fair'} color={parseInt(formData.cibil_score) > 700 ? 'green' : 'orange'} />
                                     <MetricCard label="Coverage" value={`${result.assetCoverage}x`} color="blue" />
@@ -270,9 +267,8 @@ const PredictionDashboard = () => {
                                     <MetricCard label="Models" value={result.models_used?.length || 3} color="purple" />
                                 </div>
 
-                                {/* Asset Breakdown Bar Chart */}
-                                {result && result.assetsBreakdown && (
-                                    <GlassCard className="p-4" delay={0.2}>
+                                {result.assetsBreakdown && (
+                                    <GlassCard animate={false} hover={false} className="p-4">
                                         <div className="flex items-center justify-between mb-4">
                                             <div className="flex items-center gap-2">
                                                 <FiActivity className="text-blue-400 w-3.5 h-3.5" />
@@ -281,7 +277,7 @@ const PredictionDashboard = () => {
                                             <span className="text-[10px] font-bold text-slate-500">₹{((result.totalAssets || 0) / 10000000).toFixed(2)}Cr Total</span>
                                         </div>
                                         <div className="space-y-3">
-                                            {result.assetsBreakdown.map((asset, i) => {
+                                            {result.assetsBreakdown.map((asset) => {
                                                 const percentage = result.totalAssets > 0 ? (asset.value / result.totalAssets) * 100 : 0;
                                                 return (
                                                     <div key={asset.label} className="space-y-1">
@@ -290,11 +286,9 @@ const PredictionDashboard = () => {
                                                             <span className="text-white font-bold">₹{((asset.value || 0) / 10000000).toFixed(2)}Cr</span>
                                                         </div>
                                                         <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                                                            <motion.div
+                                                            <div
                                                                 className={`h-full bg-gradient-to-r ${asset.color === 'blue' ? 'from-blue-600 to-blue-400' : asset.color === 'cyan' ? 'from-cyan-600 to-cyan-400' : asset.color === 'purple' ? 'from-purple-600 to-purple-400' : 'from-green-600 to-green-400'}`}
-                                                                initial={{ width: 0 }}
-                                                                animate={{ width: `${percentage}%` }}
-                                                                transition={{ duration: 1, delay: i * 0.1 }}
+                                                                style={{ width: `${percentage}%` }}
                                                             />
                                                         </div>
                                                     </div>
@@ -303,46 +297,60 @@ const PredictionDashboard = () => {
                                         </div>
                                     </GlassCard>
                                 )}
-
-                                {/* Model Predictions */}
-                                {result && result.predictions && (
-                                    <GlassCard className="p-4" delay={0.4}>
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <FiTrendingUp className="text-cyan-400 w-3.5 h-3.5" />
-                                            <h4 className="text-[10px] font-bold text-white uppercase tracking-wider">Neural Model Variance</h4>
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            {Object.entries(result.predictions).map(([model, pred]) => (
-                                                <div key={model} className="flex items-center justify-between">
-                                                    <span className="text-[10px] text-slate-400 capitalize">{model.replace('_', ' ')}</span>
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-16 h-1 bg-white/5 rounded-full overflow-hidden">
-                                                            <motion.div
-                                                                className="h-full bg-gradient-to-r from-blue-500 to-cyan-500"
-                                                                initial={{ width: 0 }}
-                                                                animate={{ width: `${(pred || 0) * 100}%` }}
-                                                                transition={{ duration: 0.8, delay: 0.3 }}
-                                                            />
-                                                        </div>
-                                                        <span className="text-[10px] font-bold text-white w-8 text-right">
-                                                            {((pred || 0) * 100).toFixed(0)}%
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </GlassCard>
-                                )}
-                            </motion.div>
+                            </div>
                         )}
                     </AnimatePresence>
-                </motion.div>
+                </div>
             </div>
+
+            {history.length > 0 && (
+                <div className="mt-12">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                        <h3 className="text-sm font-bold text-white uppercase tracking-[0.2em] opacity-40">Recent History</h3>
+                        <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                    </div>
+
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {history.map((item) => (
+                            <GlassCard
+                                key={item.id}
+                                animate={false}
+                                hover={false}
+                                className="p-4 cursor-pointer hover:bg-white/5 transition-all"
+                                onClick={() => {
+                                    setFormData(item.input);
+                                    setResult(item);
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }}
+                            >
+                                <div className="flex justify-between items-start mb-3">
+                                    <div>
+                                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{item.timestamp}</p>
+                                        <p className="text-white font-bold text-sm">₹{(parseFloat(item.input.loan_amount) / 100000).toFixed(1)}L Amount</p>
+                                    </div>
+                                    <div className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${item.approved ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                                        {item.approved ? 'Approved' : 'Rejected'}
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <div className="flex-1">
+                                        <p className="text-[8px] text-slate-500 uppercase mb-0.5">Confidence</p>
+                                        <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                                            <div className="h-full bg-blue-500" style={{ width: `${item.confidence}%` }} />
+                                        </div>
+                                    </div>
+                                    <span className="text-xs font-bold text-white">{item.confidence}%</span>
+                                </div>
+                            </GlassCard>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
 
-// Compact Input Field
 const InputField = ({ label, name, value, onChange }) => (
     <div>
         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
@@ -358,7 +366,6 @@ const InputField = ({ label, name, value, onChange }) => (
     </div>
 );
 
-// Compact Metric Card
 const MetricCard = ({ label, value, color }) => {
     const colors = {
         green: 'text-green-400',
@@ -367,7 +374,6 @@ const MetricCard = ({ label, value, color }) => {
         purple: 'text-purple-400',
         red: 'text-red-400'
     };
-
     return (
         <div className="p-2.5 glass-morphism rounded-lg border border-white/5 text-center">
             <p className="text-[9px] text-slate-500 uppercase tracking-wider">{label}</p>

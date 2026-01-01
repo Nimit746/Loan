@@ -229,7 +229,7 @@ async def predict(
                 try:
                     pred = models[model_name].predict(X)[0]
                     preds[model_name] = float(pred)
-                except Exception as e:
+                except (ValueError, AttributeError, TypeError) as e:
                     logger.error(f"Error predicting with {model_name}: {e}")
 
         if not preds:
