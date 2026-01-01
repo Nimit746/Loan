@@ -147,13 +147,16 @@ LoanAI is a cutting-edge financial technology platform that leverages the power 
 <div align="center">
 
 ### Prediction Interface
-<img src="https://via.placeholder.com/900x500/0a0a0f/6366f1?text=LoanAI+Prediction+Interface" alt="Prediction Interface" />
+<img width="1919" height="912" alt="image" src="https://github.com/user-attachments/assets/70d2b4b1-ede9-40db-86ef-3e4bc989846e" />
+
 
 ### Analytics Dashboard
-<img src="https://via.placeholder.com/900x500/0a0a0f/8b5cf6?text=Real-time+Analytics+Dashboard" alt="Dashboard" />
+<img width="1919" height="936" alt="image" src="https://github.com/user-attachments/assets/60eb4bd1-cf7d-490b-8d39-8d59995adfad" />
+
 
 ### 3D Interactive Elements
-<img src="https://via.placeholder.com/900x500/0a0a0f/ec4899?text=3D+Interactive+Visualization" alt="3D Elements" />
+![Uploading image.png…]()
+
 
 </div>
 
