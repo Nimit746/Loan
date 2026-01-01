@@ -1,1 +1,602 @@
 @import "tailwindcss";
+
+/* ============================================
+   DESIGN SYSTEM - Multimodal Loan Platform
+   Cinematic Animation Edition
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  /* Primary Colors - Deeper and more premium */
+  --bg-primary: #020617;
+  --bg-secondary: #050a1f;
+  --bg-tertiary: #080f2b;
+
+  /* Accent Colors - More vibrant but refined */
+  --accent-blue: #3b82f6;
+  --accent-cyan: #22d3ee;
+  --accent-purple: #a855f7;
+  --accent-indigo: #6366f1;
+
+  /* Semi-transparent accents for glass effects */
+  --accent-blue-tr: rgba(59, 130, 246, 0.5);
+  --accent-cyan-tr: rgba(34, 211, 238, 0.5);
+
+  /* Text - High contrast for readability */
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+
+  /* Spacing system for consistency */
+  --space-unit: 1rem;
+  --container-max: 1280px;
+  --section-spacing: clamp(5rem, 12vh, 10rem);
+
+  /* Premium Easing - Cinematic curves */
+  --ease-premium: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ============================================
+   NOISE TEXTURE OVERLAY
+   ============================================ */
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  animation: noise-drift 30s linear infinite;
+}
+
+@keyframes noise-drift {
+  0% {
+    transform: translate(0, 0);
+  }
+
+  50% {
+    transform: translate(-2%, -2%);
+  }
+
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+/* ============================================
+   BASE & RESET
+   ============================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  height: 100%;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+.font-premium {
+  font-family: 'Outfit', 'Inter', sans-serif;
+}
+
+/* ============================================
+   ALIGNMENT & SPACING UTILITIES
+   ============================================ */
+
+.main-container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.content-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.section-padding {
+  padding-top: var(--section-spacing);
+  padding-bottom: var(--section-spacing);
+}
+
+.gap-responsive {
+  gap: clamp(1.5rem, 5vw, 4rem);
+}
+
+/* ============================================
+   GLASS & PREMIUM UI
+   ============================================ */
+
+.glass-morphism {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+}
+
+.glass-card {
+  border-radius: 1.5rem;
+  transition: all 0.5s var(--ease-premium);
+}
+
+.glass-interactive {
+  transition: all 0.4s var(--ease-premium);
+}
+
+.glass-interactive:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow:
+    0 30px 60px rgba(0, 0, 0, 0.4),
+    0 0 40px rgba(59, 130, 246, 0.1);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #fff 0%, var(--accent-blue) 50%, var(--accent-cyan) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: inline-block;
+}
+
+/* Animated gradient text - color shifts continuously */
+.gradient-text-animated {
+  background: linear-gradient(90deg,
+      #fff 0%,
+      var(--accent-cyan) 25%,
+      var(--accent-blue) 50%,
+      var(--accent-purple) 75%,
+      #fff 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: inline-block;
+  animation: gradient-text-shift 5s linear infinite;
+}
+
+@keyframes gradient-text-shift {
+  0% {
+    background-position: 0% center;
+  }
+
+  100% {
+    background-position: 200% center;
+  }
+}
+
+/* Shimmer effect class for buttons */
+.shimmer-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer-effect::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent);
+  animation: shimmer 4s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+
+  50%,
+  100% {
+    left: 100%;
+  }
+}
+
+/* ============================================
+   CINEMATIC ANIMATIONS
+   ============================================ */
+
+/* Subtle continuous float for sections */
+@keyframes subtle-float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+/* Breathing glow for buttons and accents */
+@keyframes breathing-glow {
+
+  0%,
+  100% {
+    box-shadow:
+      0 4px 15px rgba(59, 130, 246, 0.3),
+      0 0 20px rgba(59, 130, 246, 0.2);
+  }
+
+  50% {
+    box-shadow:
+      0 6px 25px rgba(59, 130, 246, 0.5),
+      0 0 40px rgba(59, 130, 246, 0.3);
+  }
+}
+
+/* Gradient flow for pipeline animations */
+@keyframes gradient-flow {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Light ray drift */
+@keyframes light-ray-drift {
+  0% {
+    transform: translateX(-100%) rotate(45deg);
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 0.1;
+  }
+
+  100% {
+    transform: translateX(100%) rotate(45deg);
+    opacity: 0;
+  }
+}
+
+/* Particle floating */
+@keyframes particle-float {
+
+  0%,
+  100% {
+    transform: translateY(0) translateX(0);
+    opacity: 0.3;
+  }
+
+  25% {
+    transform: translateY(-20px) translateX(10px);
+    opacity: 0.6;
+  }
+
+  50% {
+    transform: translateY(-10px) translateX(-5px);
+    opacity: 0.4;
+  }
+
+  75% {
+    transform: translateY(-30px) translateX(5px);
+    opacity: 0.5;
+  }
+}
+
+/* Pulse glow for nodes */
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(59, 130, 246, 0);
+  }
+
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.4);
+  }
+}
+
+/* Slow wave motion */
+@keyframes gradient-wave {
+  0% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-3%);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* Shimmer effect */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Rotate border animation */
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes rotate-border {
+  0% {
+    --angle: 0deg;
+  }
+
+  100% {
+    --angle: 360deg;
+  }
+}
+
+/* Scale oscillation for nodes */
+@keyframes scale-oscillate {
+
+  0%,
+  100% {
+    transform: scale(0.98);
+  }
+
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+/* Draw line animation */
+@keyframes draw-line {
+  0% {
+    stroke-dashoffset: 1000;
+  }
+
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Count up glow */
+@keyframes count-glow {
+
+  0%,
+  100% {
+    text-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+  }
+
+  50% {
+    text-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+  }
+}
+
+/* ============================================
+   PREMIUM ANIMATED COMPONENTS
+   ============================================ */
+
+.rotating-border {
+  position: relative;
+  z-index: 0;
+  border-radius: 1.5rem;
+  overflow: hidden;
+}
+
+.rotating-border::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: -2px;
+  background: conic-gradient(from var(--angle), transparent, var(--accent-blue), var(--accent-cyan), transparent);
+  animation: rotate-border 4s linear infinite;
+}
+
+.rotating-border::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 1px;
+  background: var(--bg-secondary);
+  border-radius: calc(1.5rem - 1px);
+}
+
+/* Glow variants */
+.glow-blue {
+  animation: breathing-glow 4s ease-in-out infinite;
+}
+
+.glow-cyan {
+  animation: breathing-glow 4s ease-in-out infinite;
+  --glow-color: var(--accent-cyan);
+}
+
+.glow-purple {
+  animation: breathing-glow 4s ease-in-out infinite;
+  --glow-color: var(--accent-purple);
+}
+
+/* ============================================
+   LAYOUT COMPONENTS
+   ============================================ */
+
+.navbar-blur {
+  background: rgba(2, 6, 23, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.hero-float {
+  animation: subtle-float 8s var(--ease-in-out) infinite;
+}
+
+@keyframes float-slow {
+
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-15px) rotate(0.3deg);
+  }
+}
+
+/* ============================================
+   PARTICLE & SHAPE STYLES
+   ============================================ */
+
+.particles-container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  animation: particle-float 15s ease-in-out infinite;
+}
+
+.geometric-shape {
+  position: absolute;
+  border: 1px solid rgba(59, 130, 246, 0.1);
+  animation: float-slow 20s ease-in-out infinite;
+}
+
+/* Light ray overlay */
+.light-ray {
+  position: absolute;
+  width: 2px;
+  height: 200%;
+  background: linear-gradient(to bottom, transparent, rgba(59, 130, 246, 0.1), transparent);
+  animation: light-ray-drift 15s linear infinite;
+}
+
+/* ============================================
+   SCROLL ANIMATION UTILITIES
+   ============================================ */
+
+.scroll-fade-up {
+  opacity: 0;
+  transform: translateY(40px);
+  filter: blur(6px);
+  transition:
+    opacity 0.8s var(--ease-premium),
+    transform 0.8s var(--ease-premium),
+    filter 0.8s var(--ease-premium);
+}
+
+.scroll-fade-up.visible {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+/* Staggered children */
+.stagger-children>* {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.6s var(--ease-premium);
+}
+
+.stagger-children.visible>*:nth-child(1) {
+  transition-delay: 0.1s;
+}
+
+.stagger-children.visible>*:nth-child(2) {
+  transition-delay: 0.2s;
+}
+
+.stagger-children.visible>*:nth-child(3) {
+  transition-delay: 0.3s;
+}
+
+.stagger-children.visible>*:nth-child(4) {
+  transition-delay: 0.4s;
+}
+
+.stagger-children.visible>*:nth-child(5) {
+  transition-delay: 0.5s;
+}
+
+.stagger-children.visible>* {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ============================================
+   SCROLLBAR
+   ============================================ */
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-blue);
+}
+
+/* ============================================
+   REDUCED MOTION SUPPORT
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
