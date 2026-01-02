@@ -10,6 +10,8 @@ from pathlib import Path
 import json
 from contextlib import asynccontextmanager
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 # --------------------------------------------------
 # Logging
