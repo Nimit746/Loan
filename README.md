@@ -157,11 +157,7 @@ LoanAI is a cutting-edge financial technology platform that leverages the power 
 ### 3D Interactive Elements
 <img width="1918" height="890" alt="image" src="https://github.com/user-attachments/assets/78c386a0-6ae7-4feb-8986-f69e9f493df3" />
 
-
-
 </div>
-
-> **Note**: Replace with actual screenshots of your application
 
 ---
 
@@ -853,7 +849,7 @@ SOFTWARE.
 <a href="https://github.com/Nimit746">
 <img src="https://img.shields.io/badge/GitHub-100000?style=flat&logo=github&logoColor=white" />
 </a>
-<a href="https://linkedin.com/in/nimitgupta">
+<a href="https://www.linkedin.com/in/nimitg726/">
 <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=flat&logo=linkedin&logoColor=white" />
 </a>
 <a href="mailto:guptanimit062@gmail.com">
@@ -936,3 +932,65 @@ If you need help with LoanAI, here are your options:
 - 📧 **Email**: Contact the development team directly
   - Nimit: guptanimit062@gmail.com
   - Sanjeevni: sanjeevnidhir05@gmail.com
+
+- 🐛 **Bug Reports**: Open an issue on [GitHub Issues](https://github.com/Nimit746/loanai/issues)
+
+- 💡 **Feature Requests**: Submit your ideas on [GitHub Discussions](https://github.com/Nimit746/loanai/discussions)
+
+- 📖 **Documentation**: Check out our comprehensive guides in the `/docs` folder
+
+### FAQ
+
+**Q: What browsers are supported?**  
+A: LoanAI works best on Chrome, Firefox, Safari, and Edge (latest versions).
+
+**Q: Can I use this in production?**  
+A: Yes, but please review the license and ensure proper security measures are in place.
+
+**Q: How accurate are the predictions?**  
+A: Our ensemble model achieves 95.8% accuracy on test data, but real-world performance may vary.
+
+**Q: Do you offer enterprise support?**  
+A: Contact us directly for enterprise licensing and support options.
+
+**Q: Is my data secure?**  
+A: Currently, this is a demo application. For production use, implement proper authentication, encryption, and data protection measures.
+
+---
+
+## 🌐 Community
+
+Join our growing community of developers and contributors:
+
+- ⭐ **Star this repo** if you find it helpful
+- 🍴 **Fork and contribute** to make it better
+- 📣 **Share with others** who might benefit
+- 💬 **Join discussions** to share ideas and feedback
+
+---
+
+## 📈 Project Stats
+
+<div align="center">
+
+![GitHub stars](https://img.shields.io/github/stars/Nimit746/loanai?style=social)
+![GitHub forks](https://img.shields.io/github/forks/Nimit746/loanai?style=social)
+![GitHub watchers](https://img.shields.io/github/watchers/Nimit746/loanai?style=social)
+
+![GitHub issues](https://img.shields.io/github/issues/Nimit746/loanai)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/Nimit746/loanai)
+![GitHub last commit](https://img.shields.io/github/last-commit/Nimit746/loanai)
+
+</div>
+
+---
+
+<div align="center">
+
+### Made with ❤️ by [Nimit Gupta](https://github.com/Nimit746) & [Sanjeevni Dhir](https://github.com/sanju234-san)
+
+**LoanAI** - Transforming Financial Decisions with AI
+
+[⬆ Back to Top](#-loanai)
+
+</div>
