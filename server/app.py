@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field, field_validator
 from typing import Dict, Any, Optional, List
 from pathlib import Path
 import json
+from contextlib import asynccontextmanager
 
 # --------------------------------------------------
 # Logging
@@ -18,23 +19,6 @@ logger = logging.getLogger(__name__)
 # --------------------------------------------------
 # FastAPI app
 # --------------------------------------------------
-app = FastAPI(
-    title="Loan Prediction API",
-    description="Loan approval prediction using Linear, Decision Tree & Random Forest models",
-    version="1.0.0",
-)
-
-# --------------------------------------------------
-# CORS
-# --------------------------------------------------
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 # --------------------------------------------------
 # Paths (MATCH YOUR STRUCTURE)
 # --------------------------------------------------
@@ -50,8 +34,9 @@ RANDOM_FOREST_PATH = MODEL_DIR / "random_forest.pkl"
 # --------------------------------------------------
 models: Dict[str, Any] = {}
 
-@app.on_event("startup")
-async def load_models():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup logic
     try:
         if not MODEL_DIR.exists():
             logger.error(f"❌ Model directory not found: {MODEL_DIR}")
@@ -80,7 +65,30 @@ async def load_models():
 
     except Exception as e:
         logger.exception("❌ Model loading failed")
+        # In lifespan, raising here will stop the server startup
         raise RuntimeError(str(e))
+    
+    yield
+    # Shutdown logic
+    models.clear()
+
+app = FastAPI(
+    title="Loan Prediction API",
+    description="Loan approval prediction using Linear, Decision Tree & Random Forest models",
+    version="1.0.0",
+    lifespan=lifespan
+)
+
+# --------------------------------------------------
+# CORS
+# --------------------------------------------------
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # --------------------------------------------------
 # Input schema
@@ -122,15 +130,18 @@ class LoanApplication(BaseModel):
 # --------------------------------------------------
 def preprocess_input(data: LoanApplication) -> pd.DataFrame:
     """Preprocess loan application data with engineered features"""
-    dti_ratio = data.loan_amount / data.income_annum
+    income = data.income_annum if data.income_annum > 0 else 1.0
+    loan = data.loan_amount if data.loan_amount > 0 else 0.0
+    
+    dti_ratio = loan / income
     total_assets = (
         data.residential_assets_value
         + data.commercial_assets_value
         + data.luxury_assets_value
         + data.bank_asset_value
     )
-    asset_coverage = total_assets / data.loan_amount if data.loan_amount > 0 else 0
-    affordability_index = data.income_annum / (data.loan_amount / data.loan_term) if data.loan_term > 0 else 0
+    asset_coverage = total_assets / loan if loan > 0 else 0.0
+    affordability_index = income / (loan / data.loan_term) if data.loan_term > 0 and loan > 0 else 0.0
 
     return pd.DataFrame([{
         "income_annum": data.income_annum,
@@ -206,9 +217,12 @@ async def predict(
 ):
     """Predict loan approval status with multi-modal document support"""
     if not models:
+        logger.error("❌ Prediction requested but no models are loaded")
         raise HTTPException(status_code=503, detail="No models loaded")
 
     try:
+        logger.info(f"📥 Received prediction request: Income={income_annum}, Loan={loan_amount}, CIBIL={cibil_score}")
+        
         # Create application object from form data
         application = LoanApplication(
             income_annum=income_annum,
@@ -222,6 +236,7 @@ async def predict(
         )
 
         X = preprocess_input(application)
+        logger.debug(f"Preprocessed features: {X.to_dict()}")
 
         preds = {}
         for model_name in ["linear", "decision_tree", "random_forest"]:
@@ -229,13 +244,15 @@ async def predict(
                 try:
                     pred = models[model_name].predict(X)[0]
                     preds[model_name] = float(pred)
-                except (ValueError, AttributeError, TypeError) as e:
-                    logger.error(f"Error predicting with {model_name}: {e}")
+                except Exception as e:
+                    logger.error(f"❌ Error predicting with {model_name}: {e}")
 
         if not preds:
+            logger.error("❌ All models failed to provide a prediction")
             raise HTTPException(status_code=500, detail="All model predictions failed")
 
         final_pred, confidence = weighted_ensemble(preds)
+        logger.info(f"✅ Prediction complete: Approved={final_pred}, Confidence={confidence:.2f}%")
 
         # Multi-modal verification logic
         verification_status = "Data-only verification"
@@ -246,10 +263,17 @@ async def predict(
             # Boost confidence slightly if document is present (simulation)
             confidence = min(99.0, confidence + 2.0)
 
+        # Recommendation logic
+        recommendation = "Highly Recommended" if final_pred and confidence > 85 else \
+                         "Recommended" if final_pred else \
+                         "Requires Manual Review" if not final_pred and confidence > 70 else \
+                         "Not Recommended"
+
         return {
             "approved": bool(final_pred),
             "loan_status": int(final_pred),
             "confidence": round(confidence, 2),
+            "recommendation": recommendation,
             "predictions": preds,
             "models_used": list(preds.keys()),
             "verification_status": verification_status
@@ -266,6 +290,45 @@ def list_models():
         "models": list(models.keys()),
         "count": len(models)
     }
+
+@app.post("/predict/individual/{model_name}")
+async def predict_individual(
+    model_name: str,
+    income_annum: float = Form(...),
+    loan_amount: float = Form(...),
+    loan_term: int = Form(...),
+    cibil_score: int = Form(...),
+    residential_assets_value: float = Form(...),
+    commercial_assets_value: float = Form(...),
+    luxury_assets_value: float = Form(...),
+    bank_asset_value: float = Form(...),
+):
+    """Predict loan approval using a specific model"""
+    if model_name not in models:
+        raise HTTPException(status_code=404, detail=f"Model '{model_name}' not found")
+
+    try:
+        application = LoanApplication(
+            income_annum=income_annum,
+            loan_amount=loan_amount,
+            loan_term=loan_term,
+            cibil_score=cibil_score,
+            residential_assets_value=residential_assets_value,
+            commercial_assets_value=commercial_assets_value,
+            luxury_assets_value=luxury_assets_value,
+            bank_asset_value=bank_asset_value
+        )
+        X = preprocess_input(application)
+        pred = models[model_name].predict(X)[0]
+        
+        return {
+            "model": model_name,
+            "prediction": float(pred),
+            "approved": bool(pred >= 0.5)
+        }
+    except Exception as e:
+        logger.exception(f"Individual prediction error for {model_name}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn

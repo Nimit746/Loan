@@ -61,16 +61,25 @@ def test_models():
 def test_predict_ensemble(data, label):
     """Test ensemble prediction endpoint"""
     print(f"Testing ENSEMBLE PREDICTION ({label})...")
-    response = requests.post(f"{BASE_URL}/predict", json=data)
-    print(f"Status Code: {response.status_code}")
-    result = response.json()
-    print(json.dumps(result, indent=2))
-    
-    # Display summary
-    print("\n--- SUMMARY ---")
-    print(f"Approved: {'✓ YES' if result['approved'] else '✗ NO'}")
-    print(f"Confidence: {result['confidence']}%")
-    print(f"Recommendation: {result['recommendation']}")
+    try:
+        # Use data= instead of json= to send as form-data
+        response = requests.post(f"{BASE_URL}/predict", data=data)
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"Error Response: {response.text}")
+            return
+
+        result = response.json()
+        print(json.dumps(result, indent=2))
+        
+        # Display summary
+        print("\n--- SUMMARY ---")
+        print(f"Approved: {'✓ YES' if result.get('approved') else '✗ NO'}")
+        print(f"Confidence: {result.get('confidence')}%")
+        print(f"Recommendation: {result.get('recommendation')}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
     print_separator()
 
 def test_individual_models(data, label):
@@ -80,12 +89,21 @@ def test_individual_models(data, label):
     models = ['linear', 'decision_tree', 'random_forest']
     
     for model in models:
-        response = requests.post(f"{BASE_URL}/predict/individual/{model}", json=data)
-        print(f"\n{model.upper()}:")
-        print(f"  Status Code: {response.status_code}")
-        result = response.json()
-        print(f"  Prediction: {result['prediction']}")
-        print(f"  Approved: {'✓ YES' if result['approved'] else '✗ NO'}")
+        try:
+            # Use data= instead of json= to send as form-data
+            response = requests.post(f"{BASE_URL}/predict/individual/{model}", data=data)
+            print(f"\n{model.upper()}:")
+            print(f"  Status Code: {response.status_code}")
+            
+            if response.status_code != 200:
+                print(f"  Error: {response.text}")
+                continue
+
+            result = response.json()
+            print(f"  Prediction: {result.get('prediction')}")
+            print(f"  Approved: {'✓ YES' if result.get('approved') else '✗ NO'}")
+        except Exception as e:
+            print(f"  Error testing {model}: {e}")
     
     print_separator()
 

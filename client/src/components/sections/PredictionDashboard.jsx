@@ -111,7 +111,18 @@ const PredictionDashboard = () => {
         } catch (err) {
             console.error('Prediction error:', err);
             const detail = err.response?.data?.detail;
-            setError(typeof detail === 'string' ? detail : 'Connection failed. Ensure backend is running.');
+
+            let message = 'Connection failed. Ensure backend is running.';
+            if (typeof detail === 'string') {
+                message = detail;
+            } else if (Array.isArray(detail)) {
+                // Formatting FastAPI validation errors which are often in list/dict format
+                message = detail.map(d => d.msg || d.message || JSON.stringify(d)).join(', ');
+            } else if (detail && typeof detail === 'object') {
+                message = JSON.stringify(detail);
+            }
+
+            setError(message);
         } finally {
             setLoading(false);
         }
