@@ -9,6 +9,7 @@ from typing import Dict, Any, Optional, List
 from pathlib import Path
 import json
 from contextlib import asynccontextmanager
+import os
 
 # --------------------------------------------------
 # Logging
@@ -82,9 +83,10 @@ app = FastAPI(
 # --------------------------------------------------
 # CORS
 # --------------------------------------------------
+origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
