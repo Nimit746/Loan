@@ -934,7 +934,7 @@ If you need help with LoanAI, here are your options:
   - Nimit: guptanimit062@gmail.com
   - Sanjeevni: sanjeevnidhir05@gmail.com
 
-- 🐛 **Bug Reports**: Open an issue on [GitHub Issues](https://github.com/Nimit746/loanai/issues)
+- 🐛 **Bug Reports**: Open an issue on [GitHub Issues](https://github.com/Nimit746/loan/issues)
 
 - 💡 **Feature Requests**: Submit your ideas on [GitHub Discussions](https://github.com/Nimit746/loanai/discussions)
 
